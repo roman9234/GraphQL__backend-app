@@ -1,0 +1,12 @@
+# используем типы данных ID и String
+type User{
+    id: ID!
+    username: String
+}
+
+# Все запросы на извлечение данных идут сюда
+# Название запроса ; принимаемые аргументы ; возвращаемый тип
+#queryName(queryArguments): queryReturn
+type Query{
+    getUser: User
+}
