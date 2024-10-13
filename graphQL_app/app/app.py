@@ -10,6 +10,8 @@ from graphQL_app.graph.schema import schema, Blog
 # Также в /graphql/ при доступе через браузер будет окно ввода запрсов
 # Библиотека Flask-GraphQL, которую мы установили ранее, значительно упрощает эту задачу.
 
+# flask-graphql - Flask Package that will allow us to use GraphiQL IDE in the browser graphene - Python library for building GraphQL APIs graphene-sqlalchemy - Graphene package that works with SQLAlchemy to simplify working with our models
+
 # Если пользователь авторизован, он может создать блог
 # Если пользователь владеет блогом, он может создавать, редактировать и удалять посты, а также сам блог
 # Если пользователь подписан на блог, он может смотреть посты
@@ -19,6 +21,7 @@ from graphQL_app.graph.schema import schema, Blog
 app = Flask(__name__)
 app.debug = True
 
+# IDE  GraphiQL позволяет тестировать запросы GraphQL непосредственно в браузере
 app.add_url_rule(
     '/graphql/',
     view_func=GraphQLView.as_view(

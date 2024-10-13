@@ -13,27 +13,61 @@ from graphQL_app.model.models import db_session, Blog as BlogModel, User as User
 class Blog(SQLAlchemyObjectType):
     class Meta:
         model = BlogModel
-        interfaces = (relay.Node, )
+        interfaces = (relay.Node,)
 
 
 class User(SQLAlchemyObjectType):
     class Meta:
         model = UserModel
-        interfaces = (relay.Node, )
+        interfaces = (relay.Node,)
+
 
 class Post(SQLAlchemyObjectType):
     class Meta:
         model = PostModel
-        interfaces = (relay.Node, )
+        interfaces = (relay.Node,)
+
 
 class Query(graphene.ObjectType):
     node = relay.Node.Field()
-    # Allows sorting over multiple columns, by default over the primary key
-    all_users = SQLAlchemyConnectionField(User.connection)
-    # Disable sorting over this field
-    all_blogs = SQLAlchemyConnectionField(Blog.connection)
 
-    all_Posts = SQLAlchemyConnectionField(Post.connection)
+    # all_users = SQLAlchemyConnectionField(User.connection)
+    all_users = SQLAlchemyConnectionField(User)
+
+    all_blogs = SQLAlchemyConnectionField(Blog)
+
+    all_Posts = SQLAlchemyConnectionField(Post)
+    # Получить конкретного пользователя по имени
+    get_user = graphene.Field(User, name=graphene.String())
+    # Получить конкретный пост по id
+    get_post = graphene.Field(Post, id=graphene.Int())
+    # Получить конкретный блог по id
+    get_blog = graphene.Field(Blog, id=graphene.Int())
+    # Получить все посты в Блоге по id
+    get_blog_posts = graphene.Field(lambda: graphene.List(Post), id=graphene.Int())
+    # Получить все блоги пользователя id
+    get_user_blogs = graphene.Field(lambda: graphene.List(Blog), id=graphene.Int())
+
+    # расчёт более сложных запросов
+    def resolve_get_user(parent, info, name):
+        query = User.get_query(info)
+        return query.filter(UserModel.name == name).first()
+
+    def resolve_get_post(parent, info, id):
+        query = Post.get_query(info)
+        return query.filter(PostModel.id == id).first()
+
+    def resolve_get_blog(parent, info, id):
+        query = Blog.get_query(info)
+        return query.filter(BlogModel.id == id).first()
+
+    def resolve_get_blog_posts(parent, info, id):
+        query = Blog.get_query(info)
+        return query.filter(PostModel.blog_id == id).all()
+
+    def resolve_get_user_blogs(parent, info, id):
+        query = User.get_query(info)
+        return query.filter(BlogModel.user_id == id).all()
 
 
 schema = graphene.Schema(query=Query)
