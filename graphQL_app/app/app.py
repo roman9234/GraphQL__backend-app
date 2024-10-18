@@ -1,8 +1,11 @@
+import graphene
 from flask import Flask
 from flask_graphql import GraphQLView
 
 from graphQL_app.model.models import db_session
-from graphQL_app.graph.schema import schema, Blog
+from graphQL_app.graph.schema import schema
+
+from flask_graphql_auth import GraphQLAuth
 
 # Создание View GraphQL в Flask
 # В отличие от Restful, в GraphQL используется толкьо 1 URL для доступа к данным
@@ -17,19 +20,22 @@ from graphQL_app.graph.schema import schema, Blog
 # Если пользователь подписан на блог, он может смотреть посты
 
 
-
 app = Flask(__name__)
-app.debug = True
+
+# Аутентификация
+auth = GraphQLAuth(app)
+
+app.config["JWT_SECRET_KEY"] = "key_1"
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 10  # 10 минут
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 30  # 30 дней
 
 # IDE  GraphiQL позволяет тестировать запросы GraphQL непосредственно в браузере
 app.add_url_rule(
-    '/graphql/',
-    view_func=GraphQLView.as_view(
-        'graphql',
-        schema=schema,
-        graphiql=True  # это значение нужно, чтобы иметь интерфейс GraphQL
-    )
+    "/graphql",
+    view_func=GraphQLView.as_view("graphql", schema=schema, graphiql=True),
+    # graphiql значение нужно, чтобы иметь интерфейс GraphQL
 )
+
 
 # При закрытии контектса, закрывается подключение к БД
 @app.teardown_appcontext
@@ -37,5 +43,5 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    app.run(debug=True)
