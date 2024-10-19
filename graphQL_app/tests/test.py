@@ -1,4 +1,10 @@
 from graphQL_app.model.models import engine, db_session, Base, User, Blog, Post
+from flask_graphql_auth import (
+    create_access_token,
+    query_header_jwt_required,
+    create_refresh_token)
+
+
 
 Base.metadata.drop_all(bind=engine)
 Base.metadata.create_all(bind=engine)

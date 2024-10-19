@@ -4,6 +4,8 @@ from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
 from graphQL_app.model.models import db_session, Blog as BlogGrapheneModel, User as UserGrapheneModel, \
     Post as PostGrapheneModel
 
+# from flask_graphql_auth import create_access_token, query_header_jwt_required, create_refresh_token
+
 
 # GraphQL представляет объекты в виде графической структуры, а не в виде более иерархической структуры.
 # Чтобы создать такое представление, Graphene необходимо знать о каждом типе объектов, которые будут отображаться в графе.
@@ -79,7 +81,8 @@ class CreateUser(graphene.Mutation):
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    def mutate(self, info, name, email, password):
+    @classmethod
+    def mutate(cls, info, name, email, password):
         user = UserGrapheneModel(name=name, email=email, password=password)
         db_session.add(user)
         db_session.commit()
@@ -93,7 +96,8 @@ class UpdateUser(graphene.Mutation):
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    def mutate(self, info, id, name=None):
+    @classmethod
+    def mutate(cls, info, id, name=None):
         user = db_session.query(UserGrapheneModel).get(id)
         if user is None:
             raise Exception('User not found')
@@ -112,7 +116,8 @@ class CreateBlog(graphene.Mutation):
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    def mutate(self, info, name, user_id):
+    @classmethod
+    def mutate(cls, info, name, user_id):
         blog = BlogGrapheneModel(name=name, user_id=user_id)
         db_session.add(blog)
         db_session.commit()
@@ -126,7 +131,8 @@ class UpdateBlog(graphene.Mutation):
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    def mutate(self, info, blog_id, name=None):
+    @classmethod
+    def mutate(cls, info, blog_id, name=None):
         blog = db_session.query(BlogGrapheneModel).get(blog_id)
         if blog is None:
             raise Exception('Blog not found')
@@ -146,7 +152,8 @@ class CreatePost(graphene.Mutation):
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    def mutate(self, info, title, text, blog_id):
+    @classmethod
+    def mutate(cls, info, title, text, blog_id):
         post = PostGrapheneModel(title=title, text=text, blog_id=blog_id)
         db_session.add(post)
         db_session.commit()
@@ -161,7 +168,8 @@ class UpdatePost(graphene.Mutation):
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    def mutate(self, info, id, title=None, text=None):
+    @classmethod
+    def mutate(cls, info, id, title=None, text=None):
         post = db_session.query(PostGrapheneModel).get(id)
         if post is None:
             raise Exception('Post not found')
@@ -175,6 +183,33 @@ class UpdatePost(graphene.Mutation):
         return UpdatePost(post=post)
 
 
+# Аутентификация
+class AuthMutation(graphene.Mutation):
+    class Arguments(object):
+        email = graphene.String()
+        password = graphene.String()
+
+    access_token = graphene.String()
+    refresh_token = graphene.String()
+
+    def mutate(cls, info, email, password):
+        # Строчку ниже надо исправить
+
+        user = db_session.query(UserGrapheneModel).filter_by(email=email).first()
+        print(user)
+
+
+        if user and user.password == password:
+            return AuthMutation(
+                # access_token=create_access_token(email),
+                # refresh_token=create_refresh_token(email),
+                access_token="new_token_"+email,
+                refresh_token="new_refresh_token_"+email,
+            )
+        else:
+            raise Exception("Неверный email или пароль")
+
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
@@ -182,6 +217,7 @@ class Mutation(graphene.ObjectType):
     update_blog = UpdateBlog.Field()
     create_post = CreatePost.Field()
     update_post = UpdatePost.Field()
+    auth = AuthMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

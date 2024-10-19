@@ -25,6 +25,18 @@ https://datafetcher.com/graphql-json-body-converter
 curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query="
 
 ---- ---- ----
+
+
+---- Аутентификация
+
+mutation {
+  auth(email: "user1@mail.ru", password: "qwerty123") {
+    accessToken
+    refreshToken
+  }
+}
+
+
 ---- Получение списка пользователей и каждого блога пользователя:
 curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ allUsers { edges { node { name blogs { edges { node { name } } } } } }}"
 
