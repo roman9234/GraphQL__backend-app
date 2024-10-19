@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_graphql import GraphQLView
 
-from graphQL_app.model.models import db_session
+from graphQL_app.model.models import db_session, Base, engine
 from graphQL_app.graph.schema import schema
 
 # Создание View GraphQL в Flask
@@ -38,4 +38,5 @@ def shutdown_session(exception=None):
 
 
 if __name__ == '__main__':
+    Base.metadata.create_all(bind=engine)
     app.run()

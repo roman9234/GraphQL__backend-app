@@ -38,8 +38,8 @@ class Query(graphene.ObjectType):
     all_blogs = SQLAlchemyConnectionField(BlogSQLObject)
 
     all_Posts = SQLAlchemyConnectionField(PostSQLObject)
-    # Получить конкретного пользователя по имени
-    get_user = graphene.Field(UserSQLObject, name=graphene.String())
+    # Получить конкретного пользователя по id
+    get_user = graphene.Field(UserSQLObject, id=graphene.Int())
     # Получить конкретный пост по id
     get_post = graphene.Field(PostSQLObject, id=graphene.Int())
     # Получить конкретный блог по id
@@ -49,10 +49,10 @@ class Query(graphene.ObjectType):
     # Получить все блоги пользователя id
     get_user_blogs = graphene.Field(lambda: graphene.List(BlogSQLObject), id=graphene.Int())
 
-    # расчёт более сложных запросов
-    def resolve_get_user(parent, info, name):
+    # расчёт запросов
+    def resolve_get_user(parent, info, id):
         query = UserSQLObject.get_query(info)
-        return query.filter(UserGrapheneModel.name == name).first()
+        return query.filter(UserGrapheneModel.id == id).first()
 
     def resolve_get_post(parent, info, id):
         query = PostSQLObject.get_query(info)
@@ -74,11 +74,13 @@ class Query(graphene.ObjectType):
 class CreateUser(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
+        email = graphene.String(required=True)
+        password = graphene.String(required=True)
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    def mutate(self, info, name):
-        user = UserGrapheneModel(name=name)
+    def mutate(self, info, name, email, password):
+        user = UserGrapheneModel(name=name, email=email, password=password)
         db_session.add(user)
         db_session.commit()
         return CreateUser(user=user)
