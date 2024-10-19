@@ -83,101 +83,101 @@ class CreateUser(graphene.Mutation):
         return CreateUser(user=user)
 
 
-# class UpdateUser(graphene.Mutation):
-#     class Arguments:
-#         user_id = graphene.Int(required=True)
-#         name = graphene.String()
-#
-#     user = graphene.Field(lambda: UserSQLObject)
-#
-#     def mutate(self, info, user_id, name=None):
-#         user = db_session.query(User).get(user_id)
-#         if user is None:
-#             raise Exception('User not found')
-#
-#         if name is not None:
-#             user.name = name
-#
-#         db_session.commit()
-#         return UpdateUser(user=user)
-#
-#
-# class CreateBlog(graphene.Mutation):
-#     class Arguments:
-#         title = graphene.String(required=True)
-#         owner_id = graphene.Int(required=True)
-#
-#     blog = graphene.Field(lambda: BlogType)
-#
-#     def mutate(self, info, title, owner_id):
-#         blog = Blog(title=title, owner_id=owner_id)
-#         db_session.add(blog)
-#         db_session.commit()
-#         return CreateBlog(blog=blog)
-#
-#
-# class UpdateBlog(graphene.Mutation):
-#     class Arguments:
-#         blog_id = graphene.Int(required=True)
-#         title = graphene.String()
-#
-#     blog = graphene.Field(lambda: BlogType)
-#
-#     def mutate(self, info, blog_id, title=None):
-#         blog = db_session.query(Blog).get(blog_id)
-#         if blog is None:
-#             raise Exception('Blog not found')
-#
-#         if title is not None:
-#             blog.title = title
-#
-#         db_session.commit()
-#         return UpdateBlog(blog=blog)
-#
-#
-# class CreatePost(graphene.Mutation):
-#     class Arguments:
-#         title = graphene.String(required=True)
-#         content = graphene.String(required=True)
-#         blog_id = graphene.Int(required=True)
-#
-#     post = graphene.Field(lambda: PostType)
-#
-#     def mutate(self, info, title, content, blog_id):
-#         post = Post(title=title, content=content, blog_id=blog_id)
-#         db_session.add(post)
-#         db_session.commit()
-#         return CreatePost(post=post)
-#
-#
-# class UpdatePost(graphene.Mutation):
-#     class Arguments:
-#         post_id = graphene.Int(required=True)
-#         title = graphene.String()
-#         content = graphene.String()
-#
-#     post = graphene.Field(lambda: PostType)
-#
-#     def mutate(self, info, post_id, title=None, content=None):
-#         post = db_session.query(Post).get(post_id)
-#         if post is None:
-#             raise Exception('Post not found')
-#
-#         if title is not None:
-#             post.title = title
-#         if content is not None:
-#             post.content = content
-#
-#         db_session.commit()
-#         return UpdatePost(post=post)
+class UpdateUser(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        name = graphene.String()
+
+    user = graphene.Field(lambda: UserSQLObject)
+
+    def mutate(self, info, id, name=None):
+        user = db_session.query(UserGrapheneModel).get(id)
+        if user is None:
+            raise Exception('User not found')
+
+        if name is not None:
+            user.name = name
+
+        db_session.commit()
+        return UpdateUser(user=user)
+
+
+class CreateBlog(graphene.Mutation):
+    class Arguments:
+        name = graphene.String(required=True)
+        user_id = graphene.Int(required=True)
+
+    blog = graphene.Field(lambda: BlogSQLObject)
+
+    def mutate(self, info, name, user_id):
+        blog = BlogGrapheneModel(name=name, user_id=user_id)
+        db_session.add(blog)
+        db_session.commit()
+        return CreateBlog(blog=blog)
+
+
+class UpdateBlog(graphene.Mutation):
+    class Arguments:
+        blog_id = graphene.Int(required=True)
+        name = graphene.String()
+
+    blog = graphene.Field(lambda: BlogSQLObject)
+
+    def mutate(self, info, blog_id, name=None):
+        blog = db_session.query(BlogGrapheneModel).get(blog_id)
+        if blog is None:
+            raise Exception('Blog not found')
+
+        if name is not None:
+            blog.name = name
+
+        db_session.commit()
+        return UpdateBlog(blog=blog)
+
+
+class CreatePost(graphene.Mutation):
+    class Arguments:
+        title = graphene.String(required=True)
+        text = graphene.String(required=True)
+        blog_id = graphene.Int(required=True)
+
+    post = graphene.Field(lambda: PostSQLObject)
+
+    def mutate(self, info, title, text, blog_id):
+        post = PostGrapheneModel(title=title, text=text, blog_id=blog_id)
+        db_session.add(post)
+        db_session.commit()
+        return CreatePost(post=post)
+
+
+class UpdatePost(graphene.Mutation):
+    class Arguments:
+        id = graphene.Int(required=True)
+        title = graphene.String()
+        text = graphene.String()
+
+    post = graphene.Field(lambda: PostSQLObject)
+
+    def mutate(self, info, id, title=None, text=None):
+        post = db_session.query(PostGrapheneModel).get(id)
+        if post is None:
+            raise Exception('Post not found')
+
+        if title is not None:
+            post.title = title
+        if text is not None:
+            post.text = text
+
+        db_session.commit()
+        return UpdatePost(post=post)
 
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
-    # update_user = UpdateUser.Field()
-    # create_blog = CreateBlog.Field()
-    # update_blog = UpdateBlog.Field()
-    # create_post = CreatePost.Field()
-    # update_post = UpdatePost.Field()
+    update_user = UpdateUser.Field()
+    create_blog = CreateBlog.Field()
+    update_blog = UpdateBlog.Field()
+    create_post = CreatePost.Field()
+    update_post = UpdatePost.Field()
 
 
 
