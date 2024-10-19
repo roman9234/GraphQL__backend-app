@@ -2,7 +2,7 @@ from flask import Flask
 from flask_graphql import GraphQLView
 
 from graphQL_app.model.models import db_session
-from graphQL_app.graph.schema import schema, Blog
+from graphQL_app.graph.schema import schema
 
 # Создание View GraphQL в Flask
 # В отличие от Restful, в GraphQL используется толкьо 1 URL для доступа к данным

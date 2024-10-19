@@ -1,19 +1,13 @@
 GraphQL обеспечивает гибкий API и убирает необходимость постоянно писать новые запросы
 
+Документация
 
-Attribute-Based Access Control (ABAC)
+Запросы - делаются через оператор query. Аналог GET запросов в REST
 
-ABAC — это модель контроля доступа, основанная на атрибутах. Здесь решения о доступе принимаются на основе набора атрибутов,
-которые могут быть связаны с пользователем, ресурсом, действием или окружением
+Мутации - аналог POST или PUT запросов в REST.
+В мутациях также указываем поля, которые вернутся по результату запроса
 
-1. Атрибуты: Это ключевые характеристики или свойства, например:
-   • Пользовательские атрибуты: роль, отдел, возраст.
-   • Атрибуты ресурса: тип документа, уровень конфиденциальности.
-   • Атрибуты действия: чтение, запись, удаление.
-   • Атрибуты окружения: время суток, местоположение.
-2. Политики: Правила, которые определяют, какие атрибуты должны быть выполнены для разрешения доступа.
-3. Принятие решения: Когда пользователь запрашивает доступ к ресурсу, система проверяет его атрибуты и сравнивает их с политиками,
-чтобы принять решение о предоставлении или отказе в доступе.
+Подписка - получаем в реальном времени все обновления и изменения.
 
 
 
@@ -21,23 +15,28 @@ ABAC — это модель контроля доступа, основанна
 
 
 
+Конвертер GraphQL - query в одну строчку:
+https://datafetcher.com/graphql-json-body-converter
 
 
-Получение списка пользователей и каждого блога пользователя:
-curl -L "http://127.0.0.1:5000/graphql/" -XGET -d "query={ allUsers { edges { node { userId userName blogs{ edges{ node{ blogId ownerId blogName } } } } } }}"
+---- ---- ----
+Шаблон запросов для Curl:
+
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query="
+
+---- ---- ----
+- Получение списка пользователей и каждого блога пользователя:
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ allUsers { edges { node { name blogs { edges { node { name } } } } } }}"
 
 {
   allUsers {
     edges {
       node {
-        userId
-        userName
-        blogs{
-          edges{
-            node{
-              blogId
-              ownerId
-              blogName
+        name
+        blogs {
+          edges {
+            node {
+              name
             }
           }
         }
@@ -46,32 +45,21 @@ curl -L "http://127.0.0.1:5000/graphql/" -XGET -d "query={ allUsers { edges { no
   }
 }
 
-Конвертер GraphQL - query в одну строчку:
-https://datafetcher.com/graphql-json-body-converter
-
-curl -L "http://127.0.0.1:5000/graphql/" -XGET -d "query={ allUsers { edges { node { userId userName blogs{ edges{ node{ blogId ownerId blogName posts{ edges{ node{ title text } } } } } } } } }}"
-
-
+- Получение пользователя по имени, вывод всех его блогов и всех постов:
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ getUser(name: \"User1 name\") { name blogs { edges { node { name posts { edges { node { title text } } } } } } }}"
 
 {
-  allUsers {
-    edges {
-      node {
-        userId
-        userName
-        blogs{
-          edges{
-            node{
-              blogId
-              ownerId
-              blogName
-              posts{
-                edges{
-                  node{
-                    title
-                    text
-                  }
-                }
+  getUser(name: "User1 name") {
+    name
+    blogs {
+      edges {
+        node {
+          name
+          posts {
+            edges {
+              node {
+                title
+                text
               }
             }
           }
@@ -81,8 +69,22 @@ curl -L "http://127.0.0.1:5000/graphql/" -XGET -d "query={ allUsers { edges { no
   }
 }
 
+- Добавление нового пользователя
+
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query=mutation { createUser(name: \"User new\") { user { id name } }}"
+
+mutation {
+  createUser(name: "User new") {
+    user {
+      id
+      name
+    }
+  }
+}
 
 
-
+Источники:
+Авторизация в таком приложении с использованием Auth0
+https://auth0.com/blog/dynamic-authorization-with-graphql-and-rules/
 
 
