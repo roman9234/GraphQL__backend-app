@@ -15,8 +15,6 @@ Base = declarative_base()
 Base.query = db_session.query_property()
 
 
-
-
 class Post(Base):
     __tablename__ = "posts"
     id = Column(Integer, primary_key=True)
@@ -46,4 +44,3 @@ class User(Base):
         Blog,
         backref=backref('owner'), uselist=True, cascade='delete,all'
     )
-

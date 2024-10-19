@@ -17,7 +17,6 @@ from graphQL_app.graph.schema import schema
 # Если пользователь подписан на блог, он может смотреть посты
 
 
-
 app = Flask(__name__)
 app.debug = True
 
@@ -30,6 +29,7 @@ app.add_url_rule(
         graphiql=True  # это значение нужно, чтобы иметь интерфейс GraphQL
     )
 )
+
 
 # При закрытии контектса, закрывается подключение к БД
 @app.teardown_appcontext

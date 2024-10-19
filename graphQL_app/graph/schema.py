@@ -1,7 +1,8 @@
 import graphene
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
-from graphQL_app.model.models import db_session, Blog as BlogGrapheneModel, User as UserGrapheneModel, Post as PostGrapheneModel
+from graphQL_app.model.models import db_session, Blog as BlogGrapheneModel, User as UserGrapheneModel, \
+    Post as PostGrapheneModel
 
 
 # GraphQL представляет объекты в виде графической структуры, а не в виде более иерархической структуры.
@@ -171,6 +172,7 @@ class UpdatePost(graphene.Mutation):
         db_session.commit()
         return UpdatePost(post=post)
 
+
 class Mutation(graphene.ObjectType):
     create_user = CreateUser.Field()
     update_user = UpdateUser.Field()
@@ -180,6 +182,4 @@ class Mutation(graphene.ObjectType):
     update_post = UpdatePost.Field()
 
 
-
 schema = graphene.Schema(query=Query, mutation=Mutation)
-# schema = graphene.Schema(query=Query)
