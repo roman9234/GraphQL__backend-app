@@ -28,7 +28,6 @@ def get_expiry_time() -> dict:
 
 
 def get_user_by_email_and_password(email, password) -> UserGrapheneModel:
-    #
     user = db_session.query(UserGrapheneModel).filter_by(email=email).first()
     if user and user.password == password:
         return user
@@ -147,91 +146,156 @@ class CreateUser(graphene.Mutation):
 
 class UpdateUser(graphene.Mutation):
     class Arguments:
+        access_token = graphene.String()
         id = graphene.Int(required=True)
         name = graphene.String()
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    def mutate(self, info, id, name=None):
+    def mutate(self, info, access_token, id, name=None):
+
+        # Аутентификация
+        if _jwt_expired(access_token):
+            raise AuthenticationError("jwt_token is expired")
+        user_from_jwt = get_user_from_jwt(access_token)
+        #
+
         user = db_session.query(UserGrapheneModel).get(id)
-        if user is None:
-            raise Exception('User not found')
+        if user_from_jwt == user:
 
-        if name is not None:
-            user.name = name
+            if user is None:
+                raise Exception('User not found')
 
-        db_session.commit()
-        return UpdateUser(user=user)
+            if name is not None:
+                user.name = name
+
+            db_session.commit()
+            return UpdateUser(user=user)
+
+        else:
+            raise AuthenticationError("Acces denied")
 
 
 class CreateBlog(graphene.Mutation):
     class Arguments:
+        access_token = graphene.String()
         name = graphene.String(required=True)
         user_id = graphene.Int(required=True)
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    def mutate(self, info, name, user_id):
-        blog = BlogGrapheneModel(name=name, user_id=user_id)
-        db_session.add(blog)
-        db_session.commit()
-        return CreateBlog(blog=blog)
+    def mutate(self, info, access_token, name, user_id):
+
+        # Аутентификация
+        if _jwt_expired(access_token):
+            raise AuthenticationError("jwt_token is expired")
+        user_from_jwt = get_user_from_jwt(access_token)
+        #
+        if user_from_jwt.id == user_id:
+
+            blog = BlogGrapheneModel(name=name, user_id=user_id)
+            db_session.add(blog)
+            db_session.commit()
+            return CreateBlog(blog=blog)
+
+        else:
+            raise AuthenticationError("acces denied")
 
 
 class UpdateBlog(graphene.Mutation):
     class Arguments:
+        access_token = graphene.String()
         blog_id = graphene.Int(required=True)
         name = graphene.String()
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    def mutate(self, info, blog_id, name=None):
+    def mutate(self, info, access_token, blog_id, name=None):
+
+        # Аутентификация
+        if _jwt_expired(access_token):
+            raise AuthenticationError("jwt_token is expired")
+        user_from_jwt = get_user_from_jwt(access_token)
+        #
+
         blog = db_session.query(BlogGrapheneModel).get(blog_id)
+
         if blog is None:
             raise Exception('Blog not found')
 
-        if name is not None:
-            blog.name = name
+        if blog.user_id == user_from_jwt.id:
 
-        db_session.commit()
-        return UpdateBlog(blog=blog)
+            if name is not None:
+                blog.name = name
+
+            db_session.commit()
+            return UpdateBlog(blog=blog)
+
+        else:
+            raise AuthenticationError("acces denied")
 
 
 class CreatePost(graphene.Mutation):
     class Arguments:
+        access_token = graphene.String()
         title = graphene.String(required=True)
         text = graphene.String(required=True)
         blog_id = graphene.Int(required=True)
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    def mutate(self, info, title, text, blog_id):
-        post = PostGrapheneModel(title=title, text=text, blog_id=blog_id)
-        db_session.add(post)
-        db_session.commit()
-        return CreatePost(post=post)
+    def mutate(self, info, access_token, title, text, blog_id):
+
+        # Аутентификация
+        if _jwt_expired(access_token):
+            raise AuthenticationError("jwt_token is expired")
+        user_from_jwt = get_user_from_jwt(access_token)
+        blog = db_session.query(BlogGrapheneModel).get(blog_id)
+        #
+
+        if blog.user_id == user_from_jwt.id:
+
+            post = PostGrapheneModel(title=title, text=text, blog_id=blog_id)
+            db_session.add(post)
+            db_session.commit()
+            return CreatePost(post=post)
+        else:
+            raise AuthenticationError("acces denied")
 
 
 class UpdatePost(graphene.Mutation):
     class Arguments:
+        access_token = graphene.String()
         id = graphene.Int(required=True)
         title = graphene.String()
         text = graphene.String()
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    def mutate(self, info, id, title=None, text=None):
+    def mutate(self, info, access_token, id, title=None, text=None):
+
+        # Аутентификация
+        if _jwt_expired(access_token):
+            raise AuthenticationError("jwt_token is expired")
+        user_from_jwt = get_user_from_jwt(access_token)
+        #
         post = db_session.query(PostGrapheneModel).get(id)
-        if post is None:
-            raise Exception('Post not found')
+        blog = db_session.query(BlogGrapheneModel).get(post.blog_id)
 
-        if title is not None:
-            post.title = title
-        if text is not None:
-            post.text = text
+        if blog.user_id == user_from_jwt.id:
 
-        db_session.commit()
-        return UpdatePost(post=post)
+            if post is None:
+                raise Exception('Post not found')
+
+            if title is not None:
+                post.title = title
+            if text is not None:
+                post.text = text
+
+            db_session.commit()
+            return UpdatePost(post=post)
+        else:
+            raise AuthenticationError("acces denied")
 
 
 # Аутентификация

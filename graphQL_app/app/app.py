@@ -42,11 +42,16 @@ def shutdown_session(exception=None):
 
 
 if __name__ == '__main__':
-    # секретный ключ
+
     # app.config['SECRET_KEY'] = str(uuid.uuid4())
+
+    # секретный ключ
     app.config['SECRET_KEY'] = '4645e2a1c11448c7a20a972b88897c9e'
+    # app.config['JWT_EXPIRE_TIME'] = {"minutes":120}
+    app.config['JWT_EXPIRE_TIME'] = {"hours":24}
+
     # app.config['JWT_EXPIRE_TIME'] = {"seconds":600}
-    app.config['JWT_EXPIRE_TIME'] = {"seconds":20}
+    # app.config['JWT_EXPIRE_TIME'] = {"seconds":20}
 
     Base.metadata.create_all(bind=engine)
     app.run()

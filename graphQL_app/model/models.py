@@ -46,3 +46,10 @@ class User(Base):
         Blog,
         backref=backref('owner'), uselist=True, cascade='delete,all'
     )
+
+    def __eq__(self, other):
+        if self.id == other.id \
+                and self.name == other.name \
+                and self.email == other.email \
+                and self.password == other.password:
+            return True

@@ -101,7 +101,7 @@ curl -d "query=mutation { updateUser(id: 1, name: \"User1 new name\"){ user{ nam
 
 
 mutation {
-  updateUser(id: 1, name: "User1 new name") {
+  updateUser(id: 1, name: "User1 new name", accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJ1c2VyMUBtYWlsLnJ1IiwiZXhwaXJhdGlvbiI6IjIwMjQtMTAtMjIgMjI6MTI6MDAifQ.whe8krQexNFlsKfNGVExe-qfvOL_vRgt2zJQUw9XLY4") {
     user {
       email
       name
@@ -113,7 +113,7 @@ mutation {
 ---- Создание нового блога
 
 mutation {
-  createBlog(userId: 2, name: "New User 2 blog"){
+  createBlog(userId: 2, name: "User 2 new blog", accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyMkBnbWFpbC5jb20iLCJleHBpcmF0aW9uIjoiMjAyNC0xMC0yMiAyMjoxMjowMyJ9.GIKL9k1jCXY_n_ebG2scxvIP1eD3tNCSt80nDQErAsA"){
     blog{
       name
       owner{
@@ -127,7 +127,7 @@ mutation {
 ---- Обновление данных блога
 
 mutation{
-  updateBlog(blogId: 2, name: "even newer User 2 blog"){
+  updateBlog(blogId: 2, name: "even newer User 2 blog", accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyMkBnbWFpbC5jb20iLCJleHBpcmF0aW9uIjoiMjAyNC0xMC0yMiAyMjoxMjowMyJ9.GIKL9k1jCXY_n_ebG2scxvIP1eD3tNCSt80nDQErAsA"){
     blog{
       name
       owner{
@@ -140,7 +140,7 @@ mutation{
 ---- Создание нового поста в блоге
 
 mutation {
-  createPost(blogId: 2, text: "hello, this is my new blog!", title: "First post in my new blog") {
+  createPost(blogId: 3, text: "hello, this first post in my new blog!", title: "First post in my new blog", accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyMkBnbWFpbC5jb20iLCJleHBpcmF0aW9uIjoiMjAyNC0xMC0yMiAyMjoxMjowMyJ9.GIKL9k1jCXY_n_ebG2scxvIP1eD3tNCSt80nDQErAsA") {
     post {
       title
       text
@@ -151,7 +151,7 @@ mutation {
 ---- Изменение поста в блоге
 
 mutation {
-  updatePost(id: 2, text: "Hello, this is my new blog! Soon there will be even more posts!!!") {
+  updatePost(id: 3, text: "Hello, this is my new blog! Soon there will be even more posts!!!", accessToken: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MiwiZW1haWwiOiJ1c2VyMkBnbWFpbC5jb20iLCJleHBpcmF0aW9uIjoiMjAyNC0xMC0yMiAyMjoxMjowMyJ9.GIKL9k1jCXY_n_ebG2scxvIP1eD3tNCSt80nDQErAsA") {
     post {
       title
       text
