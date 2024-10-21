@@ -30,9 +30,8 @@ curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query="
 ---- Аутентификация
 
 mutation {
-  auth(email: "user1@mail.ru", password: "qwerty123") {
+  authentication(email: "user1@mail.ru", password: "qwerty123") {
     accessToken
-    refreshToken
   }
 }
 
@@ -58,10 +57,10 @@ curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ allUsers { edges { n
 }
 
 ---- Получение пользователя по имени, вывод всех его блогов и всех постов:
-curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ getUser(name: \"User1 name\") { name blogs { edges { node { name posts { edges { node { title text } } } } } } }}"
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ getUser(id: 1) { name blogs { edges { node { name posts { edges { node { title text } } } } } } }}"
 
 {
-  getUser(name: "User1 name") {
+  getUser(id: 1) {
     name
     blogs {
       edges {
@@ -83,10 +82,10 @@ curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query={ getUser(name: \"User
 
 ---- Добавление нового пользователя
 
-curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query=mutation { createUser(name: \"User new\") { user { id name } }}"
+curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query=mutation { createUser(name: \"User new\", email: \"userNew@gmail.com\",password: \"qwerty\") { user { id name } }}"
 
 mutation {
-  createUser(name: "User new") {
+  createUser(name: "User new", email: "userNew@gmail.com",password: "qwerty") {
     user {
       id
       name
@@ -95,16 +94,19 @@ mutation {
 }
 
 ---- Обновление данных пользователя
+Можно менять несколько полей сразу, или например только одно
+Зависит от аргументов
 
 curl -d "query=mutation { updateUser(id: 1, name: \"User1 new name\"){ user{ name id } }}" -L "http://127.0.0.1:5000/graphql/" -XPOST
 
 
 mutation {
-  updateUser(id: 1, name: "User1 new name"){
-   user{
-    name
-    id
-  }
+  updateUser(id: 1, name: "User1 new name") {
+    user {
+      email
+      name
+      id
+    }
   }
 }
 
@@ -156,6 +158,16 @@ mutation {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
 
 
 Источники:
