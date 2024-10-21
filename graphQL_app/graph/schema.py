@@ -1,10 +1,67 @@
+from datetime import datetime, timedelta
+from typing import Any
+
 import graphene
+import jwt
 from graphene import relay
 from graphene_sqlalchemy import SQLAlchemyObjectType, SQLAlchemyConnectionField
+
+from flask import current_app
 from graphQL_app.model.models import db_session, Blog as BlogGrapheneModel, User as UserGrapheneModel, \
     Post as PostGrapheneModel
 
+
+class AuthenticationError(Exception):
+    pass
+
+
 # from flask_graphql_auth import create_access_token, query_header_jwt_required, create_refresh_token
+
+def get_secret_key() -> str:
+    with current_app.app_context():
+        return current_app.config['SECRET_KEY']
+
+
+def get_expiry_time() -> dict:
+    with current_app.app_context():
+        return current_app.config['JWT_EXPIRE_TIME']
+
+
+def get_user_by_email_and_password(email, password) -> UserGrapheneModel:
+    #
+    user = db_session.query(UserGrapheneModel).filter_by(email=email).first()
+    if user and user.password == password:
+        return user
+    else:
+        raise AuthenticationError("Email or password is incorrect")
+
+
+def get_jwt_for_user(user: UserGrapheneModel) -> str:
+    # Создаёт токен для авторизации пользователя
+
+    _jwt_token = jwt.encode({
+        "id": user.id,
+        "email": user.email,
+        "expiration": (datetime.now() + timedelta(**get_expiry_time())).strftime("%Y-%m-%d %H:%M:%S")
+    },
+        get_secret_key(),
+        algorithm='HS256')
+
+    return _jwt_token
+
+
+def _jwt_expired(_jwt_token: str) -> bool:
+    payload = jwt.decode(_jwt_token, get_secret_key(), algorithms=['HS256'])
+    # False значит время актуальности JWT ещё не вышло
+    return datetime.strptime(payload["expiration"], "%Y-%m-%d %H:%M:%S") < datetime.now()
+
+
+def get_user_from_jwt(_jwt_token: str) -> UserGrapheneModel:
+    payload = jwt.decode(_jwt_token, get_secret_key(), algorithms=['HS256'])
+    user = db_session.query(UserGrapheneModel).filter_by(email=payload["email"], id=payload["id"]).first()
+    if user is None:
+        raise AuthenticationError("Failed to find autentificated user")
+    return user
 
 
 # GraphQL представляет объекты в виде графической структуры, а не в виде более иерархической структуры.
@@ -81,8 +138,7 @@ class CreateUser(graphene.Mutation):
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    @classmethod
-    def mutate(cls, info, name, email, password):
+    def mutate(self, info, name, email, password):
         user = UserGrapheneModel(name=name, email=email, password=password)
         db_session.add(user)
         db_session.commit()
@@ -96,8 +152,7 @@ class UpdateUser(graphene.Mutation):
 
     user = graphene.Field(lambda: UserSQLObject)
 
-    @classmethod
-    def mutate(cls, info, id, name=None):
+    def mutate(self, info, id, name=None):
         user = db_session.query(UserGrapheneModel).get(id)
         if user is None:
             raise Exception('User not found')
@@ -116,8 +171,7 @@ class CreateBlog(graphene.Mutation):
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    @classmethod
-    def mutate(cls, info, name, user_id):
+    def mutate(self, info, name, user_id):
         blog = BlogGrapheneModel(name=name, user_id=user_id)
         db_session.add(blog)
         db_session.commit()
@@ -131,8 +185,7 @@ class UpdateBlog(graphene.Mutation):
 
     blog = graphene.Field(lambda: BlogSQLObject)
 
-    @classmethod
-    def mutate(cls, info, blog_id, name=None):
+    def mutate(self, info, blog_id, name=None):
         blog = db_session.query(BlogGrapheneModel).get(blog_id)
         if blog is None:
             raise Exception('Blog not found')
@@ -152,8 +205,7 @@ class CreatePost(graphene.Mutation):
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    @classmethod
-    def mutate(cls, info, title, text, blog_id):
+    def mutate(self, info, title, text, blog_id):
         post = PostGrapheneModel(title=title, text=text, blog_id=blog_id)
         db_session.add(post)
         db_session.commit()
@@ -168,8 +220,7 @@ class UpdatePost(graphene.Mutation):
 
     post = graphene.Field(lambda: PostSQLObject)
 
-    @classmethod
-    def mutate(cls, info, id, title=None, text=None):
+    def mutate(self, info, id, title=None, text=None):
         post = db_session.query(PostGrapheneModel).get(id)
         if post is None:
             raise Exception('Post not found')
@@ -190,24 +241,35 @@ class AuthMutation(graphene.Mutation):
         password = graphene.String()
 
     access_token = graphene.String()
-    refresh_token = graphene.String()
 
-    def mutate(cls, info, email, password):
+    def mutate(self, info, email, password):
         # Строчку ниже надо исправить
 
-        user = db_session.query(UserGrapheneModel).filter_by(email=email).first()
-        print(user)
+        user = get_user_by_email_and_password(email, password)
+        token = get_jwt_for_user(user)
+
+        get_jwt_for_user(user)
+        return AuthMutation(
+            access_token=token
+        )
 
 
-        if user and user.password == password:
-            return AuthMutation(
-                # access_token=create_access_token(email),
-                # refresh_token=create_refresh_token(email),
-                access_token="new_token_"+email,
-                refresh_token="new_refresh_token_"+email,
-            )
-        else:
-            raise Exception("Неверный email или пароль")
+# Аутентификация
+class AuthCheckMutation(graphene.Mutation):
+    class Arguments(object):
+        access_token = graphene.String()
+
+    result = graphene.String()
+
+    def mutate(self, info, access_token):
+        try:
+            if _jwt_expired(access_token):
+                return AuthCheckMutation(result="jwt_token is expired")
+            else:
+                user = get_user_from_jwt(access_token)
+                return AuthCheckMutation(result=f"authentication jwt_token is correct. User email={user.email}")
+        except Exception as e:
+            return AuthCheckMutation(result=f"authentication failed due to unexpected exception: {e}")
 
 
 class Mutation(graphene.ObjectType):
@@ -217,7 +279,8 @@ class Mutation(graphene.ObjectType):
     update_blog = UpdateBlog.Field()
     create_post = CreatePost.Field()
     update_post = UpdatePost.Field()
-    auth = AuthMutation.Field()
+    authentication = AuthMutation.Field()
+    check_authentication = AuthCheckMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

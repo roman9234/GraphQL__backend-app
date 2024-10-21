@@ -1,4 +1,6 @@
-from flask import Flask
+import uuid
+
+from flask import Flask, current_app
 from flask_graphql import GraphQLView
 
 from graphQL_app.model.models import db_session, Base, engine
@@ -37,6 +39,14 @@ def shutdown_session(exception=None):
     db_session.remove()
 
 
+
+
 if __name__ == '__main__':
+    # секретный ключ
+    # app.config['SECRET_KEY'] = str(uuid.uuid4())
+    app.config['SECRET_KEY'] = '4645e2a1c11448c7a20a972b88897c9e'
+    # app.config['JWT_EXPIRE_TIME'] = {"seconds":600}
+    app.config['JWT_EXPIRE_TIME'] = {"seconds":20}
+
     Base.metadata.create_all(bind=engine)
     app.run()
