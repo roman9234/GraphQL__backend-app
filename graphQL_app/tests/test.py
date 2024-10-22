@@ -1,8 +1,4 @@
 from graphQL_app.model.models import engine, db_session, Base, User, Blog, Post
-from flask_graphql_auth import (
-    create_access_token,
-    query_header_jwt_required,
-    create_refresh_token)
 
 
 
@@ -22,15 +18,15 @@ db_session.add(user3)
 
 
 
-blog1 = Blog(owner=user1, name='UserSQLObject 1 blog')
+blog1 = Blog(owner=user1, name='User 1 blog')
 db_session.add(blog1)
 
-blog2 = Blog(owner=user1, name='UserSQLObject 1 second blog')
+blog2 = Blog(owner=user1, name='User 1 second blog')
 db_session.add(blog2)
 
 
 
-post1 = Post(blog=blog1, title="PostSQLObject in UserSQLObject 1's first blog", text="Lorum Ipsum")
+post1 = Post(blog=blog1, title="Post in User 1's first blog", text="Lorum Ipsum")
 db_session.add(post1)
 
 db_session.commit()

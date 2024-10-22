@@ -29,8 +29,24 @@ curl -L "http://127.0.0.1:5000/graphql/" -XPOST -d "query="
 
 ---- Аутентификация
 
+Аутентификация пользователя 1
+
 mutation {
   authentication(email: "user1@mail.ru", password: "qwerty123") {
+    accessToken
+  }
+}
+
+mutation {
+  authentication(email: "user1@mail.ru", password: "qwerty123") {
+    accessToken
+  }
+}
+
+Аутентификация пользователя 2
+
+mutation {
+  authentication(email: "user2@gmail.com", password: "qwerty23") {
     accessToken
   }
 }
